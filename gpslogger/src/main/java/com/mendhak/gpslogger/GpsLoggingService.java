@@ -748,6 +748,12 @@ public class GpsLoggingService extends Service  {
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            // startGpsManager() can run again without stopGpsManager() in between (e.g. on retries
+            // while waiting for a fix). Unregister the previous callback before replacing it,
+            // otherwise it stays registered and the listeners pile up in system_server.
+            if (gpsLocationManager != null && gnssStatusCallback != null) {
+                gpsLocationManager.unregisterGnssStatusCallback(gnssStatusCallback);
+            }
             gnssStatusCallback = new GnssStatus.Callback() {
                 @Override
                 public void onStarted() {
